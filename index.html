@@ -1,0 +1,949 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>窄带开关机GIF生成器</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #e9eaf0;
+      --workspace: #f7f7fa;
+      --paper: #fff;
+      --ink: #212234;
+      --label: #42455a;
+      --muted: #62667a;
+      --line: #e2e3eb;
+      --control-line: #d7d9e4;
+      --soft: #f3f4f8;
+      --accent: #643bd2;
+      --accent-hover: #5129be;
+      --accent-bg: #f2edff;
+      --accent-line: #d9cdfb;
+      --shadow: 0 1px 2px #25223e0b;
+      font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.5; }
+    h1, h2, h3, p { margin: 0; }
+    button, input, select { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { cursor: pointer; }
+    button:disabled { cursor: default; }
+    button, a.download, select { transition: background-color .14s ease, border-color .14s ease, color .14s ease; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+    svg.icon { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* Window chrome */
+    .shell {
+      width: min(1376px, calc(100% - 56px)); margin: 28px auto;
+      border: 1px solid #dfe0e8; border-radius: 17px; background: var(--workspace);
+      box-shadow: 0 10px 36px #29233e0a, 0 2px 6px #29233e06;
+    }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      min-height: 62px; padding: 10px 24px; border-bottom: 1px solid var(--line);
+      border-radius: 16px 16px 0 0; background: var(--paper);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 15px; font-weight: 690; }
+    .brand-icon { flex: none; font: 24px/1 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+    .credit { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    main { padding: 20px 24px 15px; }
+
+    /* Workspace */
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(298px, 31%); gap: 14px; align-items: stretch; }
+    .panel { min-width: 0; }
+    .editor {
+      display: grid; grid-template-columns: clamp(210px, 18vw, 244px) minmax(0, 1fr); grid-template-rows: auto 1fr;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: var(--shadow);
+    }
+    .editor-setup { grid-column: 1; grid-row: 1; min-width: 0; padding: 15px 14px; }
+    .editor-options { grid-column: 1; grid-row: 2; min-width: 0; display: flex; flex-direction: column; padding: 14px; border-top: 1px solid var(--line); }
+    .editor-preview { grid-column: 2; grid-row: 1 / span 2; min-width: 0; display: flex; flex-direction: column; border-left: 1px solid var(--line); }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .panel h2 { display: flex; gap: 8px; align-items: center; font-size: 14px; line-height: 1.32; font-weight: 680; }
+    .step {
+      display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 7px;
+      color: var(--accent); background: var(--accent-bg); border: 1px solid var(--accent-line);
+      font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .size-note {
+      display: inline-flex; align-items: center; flex: none; padding: 3px 7px; border: 1px solid var(--line);
+      border-radius: 5px; color: var(--muted); background: var(--paper); font-size: 11px;
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+
+    /* Settings and inputs */
+    .setup { display: grid; gap: 10px; }
+    .dimensions, .placement-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 8px; }
+    .placement-fields .field:first-child { grid-column: 1 / -1; }
+    .field { min-width: 0; display: grid; gap: 5px; font-size: 12px; font-weight: 550; color: var(--label); }
+    .unit {
+      display: flex; align-items: center; min-width: 0; min-height: 37px; border: 1px solid var(--control-line);
+      border-radius: 7px; background: var(--paper); box-shadow: var(--shadow);
+    }
+    .unit:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
+    .unit:has(input:disabled) { border-color: var(--line); background: var(--soft); box-shadow: none; }
+    .unit input {
+      min-width: 0; width: 100%; min-height: 35px; padding: 5px 2px 5px 8px; border: 0; border-radius: 7px;
+      outline: 0; color: var(--ink); background: transparent; font-size: 13px; font-weight: 560; font-variant-numeric: tabular-nums;
+    }
+    .unit input:disabled { color: var(--muted); }
+    .unit span { padding-right: 8px; color: var(--muted); font-size: 11px; font-weight: 500; }
+    .dropzone {
+      width: 100%; min-width: 0; min-height: 60px; display: flex; align-items: center; gap: 9px; padding: 8px;
+      border: 1px dashed #c2afef; border-radius: 8px; background: #faf7ff; color: var(--accent); text-align: left;
+    }
+    .dropzone > * { pointer-events: none; }
+    .dropzone:hover:not(:disabled), .dropzone.over { border-color: var(--accent); background: var(--accent-bg); }
+    .drop-icon { display: grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--accent-line); background: var(--paper); }
+    .drop-copy { min-width: 0; }
+    .dropzone strong { display: block; font-size: 12px; font-weight: 680; }
+    .dropzone small { display: block; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 11px; }
+    .utility {
+      display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 4px 9px;
+      border: 1px solid var(--control-line); border-radius: 7px; color: var(--label); background: var(--paper);
+      box-shadow: var(--shadow); font-size: 12px; white-space: nowrap;
+    }
+    .utility:hover:not(:disabled) { border-color: var(--accent-line); background: var(--accent-bg); color: var(--accent); }
+    .utility:disabled { border-color: var(--line); color: var(--muted); background: var(--soft); box-shadow: none; }
+    .remove-logo { margin-top: 8px; min-height: 29px; }
+    .helper { margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .export-settings {
+      display: grid; gap: 5px; border-top: 1px solid var(--line);
+      padding-top: 12px; margin-top: 12px; font-size: 12px; color: var(--label);
+    }
+    .export-settings select {
+      appearance: none; width: 100%; min-height: 37px; padding: 4px 44px 4px 8px;
+      border: 1px solid var(--control-line); border-radius: 7px; color: var(--ink); box-shadow: var(--shadow);
+      background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m1 4 5 5 5-5' fill='none' stroke='%2342455a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 8px center / 12px 12px;
+      background-origin: border-box;
+    }
+    .status { padding-top: 10px; margin-top: auto; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .status:empty { padding-top: 0; }
+    .status[data-kind="error"] { color: #9e2b40; }
+    .status[data-kind="success"] { color: #196645; }
+    .generate {
+      display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; width: 100%; margin-top: 8px;
+      border: 1px solid transparent; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 660;
+      box-shadow: 0 2px 4px #5129be22;
+    }
+    .generate:hover:not(:disabled) { background: var(--accent-hover); }
+    .generate:disabled { border-color: var(--line); color: var(--muted); background: var(--soft); box-shadow: none; }
+
+    /* Canvas and phase toolbar */
+    .stage-head { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 13px 14px; }
+    .stage-head > div { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+    .stage-head strong { font-size: 13px; font-weight: 680; }
+    .stage-space {
+      position: relative; display: grid; place-items: center; flex: 1; min-height: clamp(285px, 31vw, 416px);
+      margin: 0 12px; padding: 14px; border: 1px solid #e0e2eb; border-radius: 8px;
+      background-color: #f0f1f6;
+      background-image: linear-gradient(#e4e5ee 1px, transparent 1px), linear-gradient(90deg, #e4e5ee 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+    .screen {
+      position: relative; width: min(100%, 320px); aspect-ratio: 4 / 3;
+      box-shadow: 0 0 0 1px #bfc2d0, 0 4px 14px #25243e14; background: var(--paper);
+    }
+    #stage { display: block; width: 100%; height: 100%; }
+    .stage-empty {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); max-width: calc(100% - 26px); padding: 8px 11px; border-radius: 7px;
+      background: var(--paper); color: var(--muted); text-align: center; font-size: 12px; pointer-events: none;
+    }
+    .stage-empty .icon { width: 38px; height: 38px; padding: 8px; border: 1px solid var(--line); border-radius: 9px; color: var(--accent); background: var(--accent-bg); }
+    .selection { position: absolute; box-shadow: inset 0 0 0 1.5px var(--accent), 0 0 0 1px var(--paper); cursor: move; touch-action: none; }
+    .selection[aria-disabled="true"] { cursor: default; pointer-events: none; }
+    .resize {
+      position: absolute; right: 0; bottom: 0; width: 13px; height: 13px; transform: translate(45%, 45%);
+      border: 1.5px solid var(--accent); border-radius: 3px; background: var(--paper); cursor: nwse-resize; touch-action: none;
+    }
+    .resize::after { content: ""; position: absolute; inset: -6px; }
+    .phase-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; color: var(--muted); font-size: 12px; }
+    .phase-group { display: flex; gap: 2px; align-items: center; border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 2px; }
+    .phase {
+      min-height: 30px; min-width: 45px; border: 1px solid transparent; border-radius: 6px; background: transparent;
+      color: var(--muted); padding: 4px 8px; font-size: 12px; white-space: nowrap;
+    }
+    .phase:hover:not(:disabled) { color: var(--accent); }
+    .phase[aria-pressed="true"] { border-color: var(--control-line); background: var(--paper); color: var(--accent); box-shadow: var(--shadow); font-weight: 700; }
+    .phase:disabled { color: var(--muted); }
+
+    /* Export cards */
+    .output .panel-head { margin-bottom: 9px; }
+    #results { display: grid; gap: 10px; }
+    .result { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); box-shadow: var(--shadow); }
+    .result-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .result-title h3 { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 680; }
+    .result-title h3::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--accent); }
+    .result:nth-child(2) .result-title h3::before { background: #5962be; }
+    .timing {
+      padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px;
+      background: var(--soft); color: var(--label); font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums;
+    }
+    .timeline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 0; margin: 10px 0; list-style: none; }
+    .timeline li {
+      --segment: #d2d4e1; --segment-bg: #f5f5f9;
+      display: flex; flex-wrap: wrap; gap: 1px 4px; align-items: center; justify-content: space-between;
+      padding: 4px 6px; border-radius: 5px; border-top: 2px solid var(--segment); background: var(--segment-bg);
+      color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums;
+    }
+    .timeline li:nth-child(2) { --segment: #aa90e8; --segment-bg: #f4effe; }
+    .result:first-child .timeline li:nth-child(3), .result:nth-child(2) .timeline li:first-child { --segment: var(--accent); --segment-bg: #eee7fd; }
+    .timeline b { font-weight: 680; color: var(--label); }
+    .timeline span { white-space: nowrap; }
+    .preview {
+      position: relative; display: grid; place-items: center; height: clamp(106px, 9.5vw, 137px); overflow: hidden;
+      border: 1px solid var(--line); border-radius: 7px; background: var(--soft); color: var(--muted);
+    }
+    .preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+    .preview-empty { display: flex; align-items: center; gap: 7px; font-size: 12px; }
+    .preview-empty .icon { width: 29px; height: 29px; padding: 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
+    .result-foot { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-top: 9px; }
+    .result-meta { color: var(--muted); font-size: 12px; line-height: 1.3; font-variant-numeric: tabular-nums; }
+    .result-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+    .download, .replay {
+      display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 32px;
+      border: 1px solid var(--control-line); border-radius: 7px; padding: 4px 7px; color: var(--label);
+      background: var(--paper); text-decoration: none; font-size: 12px; white-space: nowrap;
+    }
+    .download:not([aria-disabled]) { border-color: var(--accent-line); color: var(--accent); background: #f9f6ff; font-weight: 650; }
+    .download:not([aria-disabled]):hover, .replay:hover { border-color: var(--accent-line); background: var(--accent-bg); color: var(--accent); }
+    .download[aria-disabled] { border-color: var(--line); background: var(--soft); color: var(--muted); }
+    .download .icon, .replay .icon { width: 14px; height: 14px; }
+
+    @media (max-width: 1030px) {
+      .shell { width: calc(100% - 32px); margin: 16px auto; }
+      main { padding-inline: 18px; }
+      .topbar { padding-inline: 18px; }
+      .workspace { grid-template-columns: minmax(0, 1fr); }
+      #results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .preview { height: 128px; }
+    }
+    @media (max-width: 640px) {
+      .shell { width: 100%; margin: 0; border: 0; border-radius: 0; min-height: 100vh; box-shadow: none; }
+      .topbar { min-height: 55px; padding-inline: 14px; border-radius: 0; }
+      main { padding: 16px 12px; }
+      .editor { display: flex; flex-direction: column; }
+      .editor-preview { border-left: 0; border-top: 1px solid var(--line); }
+      .editor-setup, .editor-options { padding: 12px; }
+      .stage-head, .phase-row { padding-inline: 12px; }
+      .stage-space { flex: none; height: clamp(206px, 58vw, 320px); min-height: 0; }
+      .placement-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .placement-fields .field:first-child { grid-column: auto; }
+      #results { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      button, a.download, select { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V4m-4 4 4-4 4 4M5 15v4a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-4"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v12m-4-4 4 4 4-4M5 16v3a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3"/></symbol>
+    <symbol id="i-photo" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m4 16 5-5 4 4 2-2 5 5"/><circle cx="15.5" cy="8.5" r="1"/></symbol>
+    <symbol id="i-film" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 10h4m10 0h4M3 14h4m10 0h4"/></symbol>
+    <symbol id="i-replay" viewBox="0 0 24 24"><path d="M5 9a7.5 7.5 0 1 1-.4 5M5 4v5h5"/></symbol>
+  </svg>
+  <div class="shell">
+    <header class="topbar">
+      <h1 class="brand"><span class="brand-icon" aria-hidden="true">👋</span>窄带开关机GIF生成器</h1>
+      <span class="credit">Form鲁雅雯</span>
+    </header>
+    <main>
+      <div class="workspace">
+        <section class="panel editor" aria-labelledby="input-title">
+          <div class="editor-setup">
+            <div class="panel-head">
+              <h2 id="input-title"><span class="step" aria-hidden="true">01</span>设置画布与 Logo</h2>
+            </div>
+            <div class="setup">
+              <div class="dimensions">
+                <label class="field">画布宽度<span class="unit"><input id="width" type="number" min="1" max="2048" step="1" value="320" required><span>px</span></span></label>
+                <label class="field">画布高度<span class="unit"><input id="height" type="number" min="1" max="2048" step="1" value="240" required><span>px</span></span></label>
+              </div>
+              <input id="file-picker" type="file" accept=".png,.svg,.jpg,.jpeg,.webp,.bmp" hidden>
+              <button type="button" class="dropzone" id="pick">
+                <span class="drop-icon"><svg class="icon" aria-hidden="true"><use href="#i-up"/></svg></span>
+                <span class="drop-copy"><strong id="pick-label">选择或拖入 Logo</strong><small id="pick-note">推荐透明 PNG 或 SVG</small></span>
+              </button>
+            </div>
+            <button type="button" class="utility remove-logo" id="remove" hidden>移除 Logo</button>
+          </div>
+          <div class="editor-preview">
+            <div class="stage-head">
+              <div><strong>画布预览</strong><span class="size-note" id="stage-size">320 × 240 px</span></div>
+              <button type="button" class="utility" id="center" disabled>Logo 居中</button>
+            </div>
+            <div class="stage-space" id="stage-space">
+              <div class="screen" id="screen">
+                <canvas id="stage" width="320" height="240" aria-label="白底 Logo 布局预览"></canvas>
+                <div class="selection" id="selection" tabindex="0" role="group" aria-label="Logo 位置，可用方向键移动" hidden><span class="resize" id="resize" aria-hidden="true"></span></div>
+              </div>
+              <span class="stage-empty" id="stage-empty"><svg class="icon" aria-hidden="true"><use href="#i-photo"/></svg><span id="stage-hint">上传 Logo 后在这里调整</span></span>
+            </div>
+            <div class="phase-row">
+              <span>预览画面</span>
+              <div class="phase-group" role="group" aria-label="预览画面">
+                <button class="phase" id="phase-0" type="button" aria-pressed="false" disabled>白底</button>
+                <button class="phase" id="phase-1" type="button" aria-pressed="false" disabled>50%</button>
+                <button class="phase" id="phase-2" type="button" aria-pressed="true" disabled>100%</button>
+              </div>
+            </div>
+          </div>
+          <div class="editor-options">
+            <div class="placement-fields">
+              <label class="field"><span id="logo-width-label">Logo 宽度</span><span class="unit"><input id="logo-width" type="number" min="1" step="1" disabled><span>px</span></span></label>
+              <label class="field">X 坐标<span class="unit"><input id="logo-x" type="number" min="0" step="1" disabled><span>px</span></span></label>
+              <label class="field">Y 坐标<span class="unit"><input id="logo-y" type="number" min="0" step="1" disabled><span>px</span></span></label>
+            </div>
+            <p class="helper">拖动 Logo 移位，拖右下角等比缩放。X、Y 从画布左上角算起。</p>
+            <label class="export-settings" for="colors">
+              <strong>全局色表</strong>
+              <select id="colors">
+                <option value="256">256 色</option>
+                <option value="128">128 色</option>
+                <option value="64" selected>64 色</option>
+                <option value="32">32 色</option>
+                <option value="16">16 色</option>
+                <option value="8">8 色</option>
+                <option value="4">4 色</option>
+              </select>
+            </label>
+            <p class="status" id="status" role="status"></p>
+            <button type="button" class="generate" id="generate" disabled><svg class="icon" aria-hidden="true"><use href="#i-film"/></svg><span>生成两个 GIF</span></button>
+          </div>
+        </section>
+        <section class="panel output" aria-labelledby="output-title">
+          <div class="panel-head">
+            <h2 id="output-title"><span class="step" aria-hidden="true">02</span>预览与下载</h2>
+            <span class="size-note" id="output-size">320 × 240 px</span>
+          </div>
+          <div id="results"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script>
+    "use strict";
+    const MAX_SIDE = 2048, MAX_PIXELS = 2048 * 1024;
+    const WHITE = 0xffffff;
+    const PRESETS = [
+      { label: "开机", name: "开机.gif", order: [0, 1, 2], delays: [20, 30, 100] },
+      { label: "关机", name: "关机.gif", order: [2, 1, 0], delays: [30, 30, 20] },
+    ];
+    const PHASES = [
+      { label: "白底", opacity: 0 },
+      { label: "50%", opacity: 0.5 },
+      { label: "100%", opacity: 1 },
+    ];
+
+    // Both GIFs share one palette. The last entry is reserved for frame deltas.
+    function choosePalette(frames, colorCount) {
+      const transparent = colorCount - 1;
+      const counts = new Map();
+      const frequent = new Set();
+      const primaryLogoColors = new Set();
+      for (const frame of frames) {
+        const local = new Map();
+        for (const rgb of frame) local.set(rgb, (local.get(rgb) || 0) + 1);
+        let primary = null, primaryCount = 0;
+        for (const [rgb, count] of local) {
+          counts.set(rgb, (counts.get(rgb) || 0) + count);
+          if (count >= frame.length / 8) frequent.add(rgb);
+          if (rgb !== WHITE && count > primaryCount) {
+            primary = rgb; primaryCount = count;
+          }
+        }
+        if (primary !== null && primaryCount >= (frame.length - (local.get(WHITE) || 0)) / 2) {
+          primaryLogoColors.add(primary);
+        }
+      }
+      let colors;
+      if (counts.size <= transparent) {
+        colors = [...counts.keys()];
+      } else {
+        const pinned = counts.has(WHITE) ? new Set([WHITE]) : new Set();
+        // Keep each phase's main brand color, even with a 4-entry palette.
+        for (const rgb of primaryLogoColors) {
+          if (pinned.size === transparent) break;
+          pinned.add(rgb);
+        }
+        const pinLimit = Math.max(1, Math.floor(transparent / 3));
+        for (const rgb of [...frequent].sort((a, b) => counts.get(b) - counts.get(a))) {
+          if (pinned.size >= pinLimit) break;
+          pinned.add(rgb);
+        }
+        const budget = transparent - pinned.size;
+        const boxes = budget ? [summarize(palettePoints(counts, pinned))] : [];
+        while (boxes.length < budget) {
+          let index = -1, best = 0;
+          for (const [i, box] of boxes.entries()) {
+            if (box.points.length > 1 && box.error > best) {
+              best = box.error; index = i;
+            }
+          }
+          if (index < 0) break;
+          const [a, b] = divide(boxes[index]);
+          boxes[index] = a; boxes.push(b);
+        }
+        colors = [...new Set([...pinned, ...boxes.map(({ r, g, b, n }) =>
+          (Math.round(r / n) << 16) | (Math.round(g / n) << 8) | Math.round(b / n))])];
+      }
+      const table = new Uint8Array(colorCount * 3).fill(255);
+      const entries = [], byColor = new Map();
+      let next = 0;
+      for (const rgb of colors) {
+        const index = rgb === WHITE ? transparent - 1 : next++;
+        const r = rgb >> 16, g = (rgb >> 8) & 255, b = rgb & 255;
+        table.set([r, g, b], 3 * index);
+        entries.push({ index, r, g, b });
+        byColor.set(rgb, index);
+      }
+      function nearest(rgb) {
+        const known = byColor.get(rgb);
+        if (known !== undefined) return known;
+        const r = rgb >> 16, g = (rgb >> 8) & 255, b = rgb & 255;
+        let index = 0, error = Infinity;
+        for (const p of entries) {
+          const dr = r - p.r, dg = g - p.g, db = b - p.b;
+          const d = 2 * dr * dr + 4 * dg * dg + db * db;
+          if (d < error) { index = p.index; error = d; }
+        }
+        byColor.set(rgb, index);
+        return index;
+      }
+      return { table, transparent, bits: Math.log2(colorCount), frames: frames.map(frame => Uint8Array.from(frame, nearest)) };
+    }
+
+    function palettePoints(counts, pinned) {
+      const exact = counts.size <= 8192;
+      const points = [], bins = new Map();
+      for (const [rgb, n] of counts) {
+        if (pinned.has(rgb)) continue;
+        const r = rgb >> 16, g = (rgb >> 8) & 255, b = rgb & 255;
+        if (exact) {
+          points.push([r, g, b, n]);
+        } else {
+          const key = ((r >> 3) << 10) | ((g >> 3) << 5) | (b >> 3);
+          if (!bins.has(key)) bins.set(key, [0, 0, 0, 0]);
+          const v = bins.get(key);
+          v[0] += r * n; v[1] += g * n; v[2] += b * n; v[3] += n;
+        }
+      }
+      if (!exact) {
+        for (const [r, g, b, n] of bins.values()) points.push([r / n, g / n, b / n, n]);
+      }
+      return points;
+    }
+
+    function summarize(points) {
+      let r = 0, g = 0, b = 0, n = 0, rr = 0, gg = 0, bb = 0;
+      for (const [x, y, z, w] of points) {
+        r += x * w; g += y * w; b += z * w; n += w;
+        rr += x * x * w; gg += y * y * w; bb += z * z * w;
+      }
+      const errors = [2 * (rr - r * r / n), 4 * (gg - g * g / n), bb - b * b / n];
+      const axis = errors.indexOf(Math.max(...errors));
+      return { points, r, g, b, n, axis, error: errors[0] + errors[1] + errors[2] };
+    }
+
+    function divide(box) {
+      const { points, axis, n, r, g, b } = box;
+      points.sort((a, b) => a[axis] - b[axis]);
+      let cut = 1, best = -1, lr = 0, lg = 0, lb = 0, ln = 0;
+      for (let i = 0; i < points.length - 1; i++) {
+        const [x, y, z, w] = points[i];
+        lr += x * w; lg += y * w; lb += z * w; ln += w;
+        const rn = n - ln;
+        const dr = lr / ln - (r - lr) / rn, dg = lg / ln - (g - lg) / rn, db = lb / ln - (b - lb) / rn;
+        const gain = ln * rn * (2 * dr * dr + 4 * dg * dg + db * db);
+        if (gain > best) { best = gain; cut = i + 1; }
+      }
+      return [summarize(points.slice(0, cut)), summarize(points.slice(cut))];
+    }
+
+    function frameRectangle(current, previous, { width, height }, transparent) {
+      if (previous) {
+        let left = width, top = height, right = -1, bottom = -1;
+        for (let y = 0, i = 0; y < height; y++) {
+          for (let x = 0; x < width; x++, i++) {
+            if (current[i] !== previous[i]) {
+              left = Math.min(left, x); top = Math.min(top, y);
+              right = Math.max(right, x); bottom = Math.max(bottom, y);
+            }
+          }
+        }
+        if (right >= 0) {
+          const rectWidth = right - left + 1, rectHeight = bottom - top + 1;
+          const pixels = new Uint8Array(rectWidth * rectHeight);
+          for (let y = top, p = 0; y <= bottom; y++) {
+            for (let x = left; x <= right; x++, p++) {
+              const i = y * width + x;
+              pixels[p] = current[i] === previous[i] ? transparent : current[i];
+            }
+          }
+          return { left, top, width: rectWidth, height: rectHeight, pixels };
+        }
+      }
+      // A repeated source still gets its own image block and delay.
+      return { left: 0, top: 0, width, height, pixels: current };
+    }
+
+    function compressLzw(pixels, minimum) {
+      const clear = 1 << minimum, end = clear + 1;
+      let width = minimum + 1, next = end + 1, acc = 0, bits = 0;
+      const dict = new Map(), out = [];
+      function emit(code) {
+        acc |= code << bits; bits += width;
+        while (bits >= 8) { out.push(acc & 255); acc >>>= 8; bits -= 8; }
+      }
+      function emitPrefix(code) {
+        emit(code);
+        // The decoder adds the previous pair after reading this code.
+        if (next === (1 << width) && width < 12) width++;
+      }
+      emit(clear);
+      let prefix = pixels[0];
+      for (let i = 1; i < pixels.length; i++) {
+        const symbol = pixels[i], key = (prefix << minimum) | symbol;
+        const match = dict.get(key);
+        if (match !== undefined) {
+          prefix = match;
+        } else {
+          emitPrefix(prefix);
+          if (next < 4096) {
+            dict.set(key, next++);
+          } else {
+            emit(clear); dict.clear(); width = minimum + 1; next = end + 1;
+          }
+          prefix = symbol;
+        }
+      }
+      emitPrefix(prefix); emit(end);
+      if (bits) out.push(acc & 255);
+      return Uint8Array.from(out);
+    }
+
+    function encodeGif(palette, preset, dimensions) {
+      const { width, height } = dimensions;
+      const { table, frames, transparent, bits } = palette;
+      const chunks = [];
+      const bytes = (...values) => chunks.push(Uint8Array.of(...values));
+      const word = value => [value & 255, value >> 8];
+      const ascii = value => chunks.push(Uint8Array.from(value, c => c.charCodeAt(0)));
+      ascii("GIF89a");
+      bytes(...word(width), ...word(height), 0x80 | ((bits - 1) << 4) | (bits - 1), transparent, 0);
+      chunks.push(table);
+      bytes(0x21, 0xff, 11); ascii("NETSCAPE2.0"); bytes(3, 1, 0, 0, 0);
+      let previous = null;
+      for (const [i, source] of preset.order.entries()) {
+        const current = frames[source];
+        const rect = frameRectangle(current, previous, dimensions, transparent);
+        bytes(0x21, 0xf9, 4, 0x05, ...word(preset.delays[i]), transparent, 0);
+        bytes(0x2c, ...word(rect.left), ...word(rect.top), ...word(rect.width), ...word(rect.height), 0, bits);
+        const data = compressLzw(rect.pixels, bits);
+        for (let pos = 0; pos < data.length; pos += 255) {
+          const block = data.subarray(pos, pos + 255);
+          bytes(block.length); chunks.push(block);
+        }
+        bytes(0);
+        previous = current;
+      }
+      bytes(0x3b);
+      return new Blob(chunks, { type: "image/gif" });
+    }
+
+    const $ = id => document.getElementById(id);
+    const icon = id => '<svg class="icon" aria-hidden="true"><use href="#i-' + id + '"/></svg>';
+    const sizes = [$("width"), $("height")];
+    const placementInputs = [$("logo-width"), $("logo-x"), $("logo-y")];
+    const phaseButtons = PHASES.map((_, i) => $("phase-" + i));
+    const centered = () => ({ scale: 0.6, cx: 0.5, cy: 0.5 });
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+    let logo = null, placement = centered(), phase = 2, busy = "", message = null;
+    let drag = null, drawPending = false;
+
+    function getDimensions() {
+      const [width, height] = sizes.map(input => input.valueAsNumber);
+      if (![width, height].every(n => Number.isInteger(n) && n >= 1 && n <= MAX_SIDE) ||
+          width * height > MAX_PIXELS) return null;
+      return { width, height };
+    }
+
+    function maxLogoWidth(dimensions, ratio, x = 0, y = 0) {
+      return Math.max(1, Math.floor(Math.min(dimensions.width - x, (dimensions.height - y) * ratio) + 1e-8));
+    }
+
+    function fitRect(dimensions, ratio, width, centerX, centerY) {
+      width = clamp(Math.round(width), 1, maxLogoWidth(dimensions, ratio));
+      const height = clamp(Math.round(width / ratio), 1, dimensions.height);
+      return {
+        width, height,
+        x: clamp(Math.round(centerX - width / 2), 0, dimensions.width - width),
+        y: clamp(Math.round(centerY - height / 2), 0, dimensions.height - height),
+      };
+    }
+
+    function getRect(dimensions) {
+      if (!logo || !dimensions) return null;
+      return fitRect(dimensions, logo.ratio, placement.scale * maxLogoWidth(dimensions, logo.ratio),
+        placement.cx * dimensions.width, placement.cy * dimensions.height);
+    }
+
+    function rememberRect(dimensions, rect) {
+      placement = {
+        scale: rect.width / maxLogoWidth(dimensions, logo.ratio),
+        cx: (rect.x + rect.width / 2) / dimensions.width,
+        cy: (rect.y + rect.height / 2) / dimensions.height,
+      };
+    }
+
+    function updateRect(dimensions, rect) {
+      const old = getRect(dimensions);
+      if (old.x !== rect.x || old.y !== rect.y || old.width !== rect.width || old.height !== rect.height) {
+        rememberRect(dimensions, rect);
+        invalidate();
+      }
+      render();
+    }
+
+    function paintFrame(ctx, { width, height }, rect, opacity) {
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, width, height);
+      if (!rect || !opacity) return;
+      ctx.globalAlpha = opacity;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      try {
+        ctx.drawImage(logo.img, rect.x, rect.y, rect.width, rect.height);
+      } finally {
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function fitScreen() {
+      const dimensions = getDimensions();
+      if (!dimensions) return;
+      const { width, height } = dimensions;
+      const space = $("stage-space"), screen = $("screen");
+      const factor = Math.min(Math.max(1, space.clientWidth - 28) / width, Math.max(1, space.clientHeight - 28) / height);
+      screen.style.width = (width * factor) + "px";
+      screen.style.height = (height * factor) + "px";
+    }
+
+    function drawPreview() {
+      if (drawPending) return;
+      drawPending = true;
+      requestAnimationFrame(() => {
+        drawPending = false;
+        const dimensions = getDimensions();
+        if (!dimensions) return;
+        const canvas = $("stage");
+        if (canvas.width !== dimensions.width) canvas.width = dimensions.width;
+        if (canvas.height !== dimensions.height) canvas.height = dimensions.height;
+        const ctx = canvas.getContext("2d", { alpha: false });
+        if (ctx) paintFrame(ctx, dimensions, getRect(dimensions), PHASES[phase].opacity);
+      });
+    }
+
+    const seconds = cs => (cs / 100).toFixed(1);
+    const results = PRESETS.map(preset => {
+      const card = document.createElement("article");
+      card.className = "result";
+      const total = seconds(preset.delays.reduce((a, b) => a + b, 0));
+      const timeline = preset.order.map((i, position) =>
+        '<li><b>' + PHASES[i].label + '</b><span>' + seconds(preset.delays[position]) + ' 秒</span></li>').join("");
+      card.innerHTML = '<div class="result-title"><h3>' + preset.label + ' GIF</h3><span class="timing">3 帧 · ' + total +
+        ' 秒/轮</span></div><ol class="timeline" aria-label="' + preset.label + '帧顺序和时长">' + timeline +
+        '</ol><div class="preview"><span class="preview-empty">' + icon("film") + '生成后可预览</span><img alt="' +
+        preset.label + ' GIF 预览" hidden></div><div class="result-foot"><p class="result-meta">等待生成</p><div class="result-buttons">' +
+        '<button class="replay" type="button" hidden>' + icon("replay") +
+        '重播</button><a class="download" aria-disabled="true">' + icon("down") + '下载 GIF</a></div></div>';
+      $("results").append(card);
+      const result = {
+        preset, url: "", previewUrl: "", blob: null, img: card.querySelector("img"),
+        placeholder: card.querySelector(".preview-empty"), meta: card.querySelector(".result-meta"),
+        download: card.querySelector("a"), replay: card.querySelector("button"),
+      };
+      result.download.download = preset.name;
+      result.download.setAttribute("aria-label", "下载" + preset.label + " GIF");
+      result.replay.setAttribute("aria-label", "重播" + preset.label + " GIF");
+      result.replay.addEventListener("click", () => {
+        if (!result.blob) return;
+        if (result.previewUrl) URL.revokeObjectURL(result.previewUrl);
+        result.previewUrl = URL.createObjectURL(result.blob);
+        result.img.src = result.previewUrl;
+      });
+      return result;
+    });
+
+    function resetResults() {
+      for (const result of results) {
+        if (result.url) URL.revokeObjectURL(result.url);
+        if (result.previewUrl) URL.revokeObjectURL(result.previewUrl);
+        result.url = result.previewUrl = ""; result.blob = null;
+        result.img.hidden = true; result.img.removeAttribute("src");
+        result.placeholder.hidden = false;
+        result.download.removeAttribute("href");
+        result.download.setAttribute("aria-disabled", "true");
+        result.replay.hidden = true;
+        result.meta.textContent = "等待生成"; result.meta.title = "";
+      }
+    }
+
+    function invalidate() {
+      if (results.some(result => result.blob)) resetResults();
+      message = null;
+    }
+
+    function render() {
+      const dimensions = getDimensions(), rect = getRect(dimensions);
+      const locked = Boolean(busy), canEdit = Boolean(rect) && !locked;
+      for (const control of [...sizes, $("colors"), $("pick")]) control.disabled = locked;
+      for (const control of [...placementInputs, ...phaseButtons, $("center"), $("generate")]) control.disabled = !canEdit;
+      $("remove").hidden = !logo;
+      $("remove").disabled = locked;
+      $("pick-label").textContent = logo ? "更换 Logo" : "选择或拖入 Logo";
+      $("pick-note").textContent = logo ? logo.name : "推荐透明 PNG 或 SVG";
+      $("pick").title = logo ? logo.name : "";
+      const sizeLabel = dimensions ? dimensions.width + " × " + dimensions.height + " px" : "尺寸未就绪";
+      $("stage-size").textContent = sizeLabel;
+      $("output-size").textContent = sizeLabel;
+      $("screen").hidden = !dimensions;
+      $("stage-empty").hidden = Boolean(dimensions && logo);
+      $("stage-hint").textContent = dimensions ? "上传 Logo 后在这里调整" : "请检查画布尺寸";
+      for (const [i, button] of phaseButtons.entries()) button.setAttribute("aria-pressed", String(phase === i));
+      const selection = $("selection");
+      selection.hidden = !rect || phase === 0;
+      selection.setAttribute("aria-disabled", String(!canEdit));
+      selection.tabIndex = canEdit && phase !== 0 ? 0 : -1;
+      $("logo-width-label").textContent = rect ? "Logo 宽度（高 " + rect.height + "）" : "Logo 宽度";
+      if (rect) {
+        const { width, height } = dimensions;
+        const values = [rect.width, rect.x, rect.y];
+        const maxima = [maxLogoWidth(dimensions, logo.ratio), width - rect.width, height - rect.height];
+        for (const [i, input] of placementInputs.entries()) {
+          input.value = values[i]; input.max = maxima[i];
+        }
+        selection.style.left = (100 * rect.x / width) + "%";
+        selection.style.top = (100 * rect.y / height) + "%";
+        selection.style.width = (100 * rect.width / width) + "%";
+        selection.style.height = (100 * rect.height / height) + "%";
+      } else {
+        for (const input of placementInputs) input.value = "";
+      }
+      const status = $("status");
+      const text = busy || message?.text || (!dimensions ?
+        "宽高须为 1–2048 的整数，画布最多 2,097,152 像素。" :
+        logo ? "布局确认后即可生成两个 GIF。" : "");
+      if (status.textContent !== text) status.textContent = text;
+      status.dataset.kind = busy ? "" : message?.kind || (dimensions ? "" : "error");
+      fitScreen();
+      drawPreview();
+    }
+
+    async function loadLogo(files) {
+      if (busy || !files.length) return;
+      if (files.length !== 1) {
+        message = { kind: "error", text: "每次只需选择一张 Logo 图片。" };
+        render(); return;
+      }
+      const file = files[0];
+      if (!/\.(png|svg|jpe?g|webp|bmp)$/i.test(file.name) || file.size > 25 * 1024 * 1024) {
+        message = { kind: "error", text: "请选一张不超过 25 MB 的 PNG、SVG、JPG、WebP 或 BMP 图片。" };
+        render(); return;
+      }
+      busy = "正在读取 Logo…"; message = null; render();
+      const isSvg = /\.svg$/i.test(file.name);
+      const url = URL.createObjectURL(isSvg ? new Blob([file], { type: "image/svg+xml" }) : file);
+      try {
+        const img = new Image();
+        img.src = url;
+        await img.decode();
+        if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth * img.naturalHeight > 16777216) {
+          throw new Error("Logo 尺寸无效或过大。");
+        }
+        const prior = logo;
+        logo = { img, url, name: file.name, ratio: img.naturalWidth / img.naturalHeight };
+        if (prior) URL.revokeObjectURL(prior.url);
+        else placement = centered();
+        phase = 2;
+        invalidate();
+      } catch {
+        URL.revokeObjectURL(url);
+        message = { kind: "error", text: "无法读取「" + file.name + "」，请换一张图片或导出为透明 PNG。" };
+      } finally {
+        busy = ""; render();
+      }
+    }
+
+    function composeFrames(dimensions, rect) {
+      const canvas = document.createElement("canvas");
+      canvas.width = dimensions.width; canvas.height = dimensions.height;
+      const ctx = canvas.getContext("2d", { alpha: false, willReadFrequently: true });
+      if (!ctx) throw new Error("Canvas unavailable");
+      const pixels = dimensions.width * dimensions.height;
+      return PHASES.map(({ opacity }) => {
+        if (opacity === 0) return new Uint32Array(pixels).fill(WHITE);
+        paintFrame(ctx, dimensions, rect, opacity);
+        const rgba = ctx.getImageData(0, 0, dimensions.width, dimensions.height).data;
+        const frame = new Uint32Array(pixels);
+        for (let i = 0, j = 0; i < pixels; i++, j += 4) frame[i] = (rgba[j] << 16) | (rgba[j + 1] << 8) | rgba[j + 2];
+        return frame;
+      });
+    }
+
+    async function generate() {
+      const dimensions = getDimensions(), rect = getRect(dimensions);
+      if (busy || !rect) return;
+      const colorCount = Number($("colors").value);
+      resetResults(); busy = "正在生成两个 GIF…"; message = null; render();
+      try {
+        await new Promise(resolve => setTimeout(resolve, 0));
+        const palette = choosePalette(composeFrames(dimensions, rect), colorCount);
+        for (const result of results) {
+          result.blob = encodeGif(palette, result.preset, dimensions);
+          result.url = URL.createObjectURL(result.blob);
+          result.img.src = result.url;
+        }
+        await Promise.all(results.map(result => result.img.decode()));
+        for (const result of results) {
+          result.placeholder.hidden = true;
+          result.img.hidden = false;
+          result.download.href = result.url;
+          result.download.removeAttribute("aria-disabled");
+          result.replay.hidden = false;
+          result.meta.textContent = result.preset.name + " · " + (result.blob.size / 1024).toFixed(2) + " KB";
+          result.meta.title = result.blob.size + " 字节";
+        }
+        message = { kind: "success", text: "两个 GIF 已生成，可以预览和下载。" };
+      } catch (error) {
+        resetResults();
+        message = { kind: "error", text: error.name === "SecurityError" ?
+          "这张 Logo 无法导出，请试试透明 PNG。" : "生成失败，请检查 Logo 格式或减小画布尺寸后重试。" };
+        console.error(error);
+      } finally {
+        busy = ""; render();
+      }
+    }
+
+    $("pick").addEventListener("click", () => $("file-picker").click());
+    $("file-picker").addEventListener("change", event => {
+      const files = [...event.target.files]; event.target.value = ""; loadLogo(files);
+    });
+    for (const type of ["dragenter", "dragover"]) {
+      $("pick").addEventListener(type, event => {
+        if (!event.dataTransfer.types.includes("Files")) return;
+        event.preventDefault(); event.dataTransfer.dropEffect = busy ? "none" : "copy";
+        if (!busy) $("pick").classList.add("over");
+      });
+    }
+    $("pick").addEventListener("dragleave", () => $("pick").classList.remove("over"));
+    document.addEventListener("dragover", event => {
+      if (event.dataTransfer.types.includes("Files")) event.preventDefault();
+    });
+    document.addEventListener("drop", event => {
+      $("pick").classList.remove("over");
+      if (!event.dataTransfer.files.length) return;
+      event.preventDefault();
+      if ($("pick").contains(event.target)) loadLogo([...event.dataTransfer.files]);
+    });
+
+    for (const input of sizes) input.addEventListener("input", () => {
+      drag = null; invalidate(); render();
+    });
+    $("colors").addEventListener("change", () => { invalidate(); render(); });
+    for (const [i, button] of phaseButtons.entries()) button.addEventListener("click", () => {
+      phase = i; render();
+    });
+    $("center").addEventListener("click", () => {
+      placement = { ...placement, cx: 0.5, cy: 0.5 };
+      if (phase === 0) phase = 2;
+      invalidate(); render();
+    });
+    $("remove").addEventListener("click", () => {
+      if (!logo || busy) return;
+      URL.revokeObjectURL(logo.url);
+      logo = null; placement = centered(); phase = 2; drag = null;
+      invalidate(); render(); $("pick").focus();
+    });
+
+    for (const [i, input] of placementInputs.entries()) {
+      input.addEventListener("change", () => {
+        const dimensions = getDimensions(), rect = getRect(dimensions);
+        if (!rect || busy) return;
+        const value = input.valueAsNumber;
+        if (!Number.isFinite(value)) { render(); return; }
+        if (phase === 0) phase = 2;
+        if (i === 0) {
+          updateRect(dimensions, fitRect(dimensions, logo.ratio, value, rect.x + rect.width / 2, rect.y + rect.height / 2));
+        } else {
+          const key = i === 1 ? "x" : "y", limit = i === 1 ? dimensions.width - rect.width : dimensions.height - rect.height;
+          updateRect(dimensions, { ...rect, [key]: clamp(Math.round(value), 0, limit) });
+        }
+      });
+      input.addEventListener("keydown", event => { if (event.key === "Enter") input.blur(); });
+    }
+
+    const selection = $("selection");
+    selection.addEventListener("pointerdown", event => {
+      const dimensions = getDimensions(), rect = getRect(dimensions);
+      if (busy || !rect || drag || event.button !== 0) return;
+      event.preventDefault();
+      selection.focus({ preventScroll: true });
+      const bounds = $("screen").getBoundingClientRect();
+      drag = {
+        id: event.pointerId, x: event.clientX, y: event.clientY, rect, dimensions,
+        sx: dimensions.width / bounds.width, sy: dimensions.height / bounds.height,
+        resize: event.target === $("resize"),
+      };
+      selection.setPointerCapture(event.pointerId);
+    });
+    selection.addEventListener("pointermove", event => {
+      if (!drag || drag.id !== event.pointerId) return;
+      const { rect, dimensions, sx, sy } = drag;
+      const dx = (event.clientX - drag.x) * sx, dy = (event.clientY - drag.y) * sy;
+      if (drag.resize) {
+        const slope = 1 / logo.ratio;
+        const grow = (dx + slope * dy) / (1 + slope * slope);
+        const width = clamp(Math.round(rect.width + grow), 1, maxLogoWidth(dimensions, logo.ratio, rect.x, rect.y));
+        const height = clamp(Math.round(width / logo.ratio), 1, dimensions.height - rect.y);
+        updateRect(dimensions, { ...rect, width, height });
+      } else {
+        updateRect(dimensions, {
+          ...rect,
+          x: clamp(Math.round(rect.x + dx), 0, dimensions.width - rect.width),
+          y: clamp(Math.round(rect.y + dy), 0, dimensions.height - rect.height),
+        });
+      }
+    });
+    for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) selection.addEventListener(type, event => {
+      if (drag?.id === event.pointerId) drag = null;
+    });
+    selection.addEventListener("keydown", event => {
+      const directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+      const delta = directions[event.key];
+      const dimensions = getDimensions(), rect = getRect(dimensions);
+      if (!delta || !rect || busy) return;
+      event.preventDefault();
+      const step = event.shiftKey ? 10 : 1;
+      updateRect(dimensions, {
+        ...rect,
+        x: clamp(rect.x + delta[0] * step, 0, dimensions.width - rect.width),
+        y: clamp(rect.y + delta[1] * step, 0, dimensions.height - rect.height),
+      });
+    });
+
+    $("generate").addEventListener("click", generate);
+    if (typeof ResizeObserver === "function") new ResizeObserver(fitScreen).observe($("stage-space"));
+    else window.addEventListener("resize", fitScreen);
+    render();
+  </script>
+</body>
+</html>
