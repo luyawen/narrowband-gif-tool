@@ -37,11 +37,11 @@
       stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
     }
 
-    .shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
-    .topbar, .action-bar {
+    .shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+    .topbar {
       display: flex; align-items: center; gap: 16px; padding: 16px 40px; background: var(--surface);
+      min-height: 80px; justify-content: space-between; border-bottom: 1px solid var(--line);
     }
-    .topbar { min-height: 80px; justify-content: space-between; border-bottom: 1px solid var(--line); }
     .brand { display: flex; align-items: center; gap: 14px; min-width: 0; font-size: 24px; line-height: 1.25; font-weight: 700; color: #000; }
     .brand-icon { flex: none; font: 36px/1 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
     .credit { color: var(--muted); font-size: 14px; white-space: nowrap; }
@@ -171,13 +171,14 @@
     .result-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
     .download .icon, .replay .icon { width: 14px; height: 14px; }
 
-    .action-bar { position: sticky; bottom: 0; z-index: 5; justify-content: flex-end; min-height: 72px; border-top: 1px solid var(--line); }
-    .status { min-width: 0; color: var(--muted); font-size: 13px; text-align: right; overflow-wrap: anywhere; }
+    .generate-controls { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .status { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+    .status:not(:empty) { margin-top: 8px; }
     .status[data-kind="error"] { color: var(--danger); }
     .status[data-kind="success"] { color: var(--success); }
     .generate {
-      display: inline-flex; align-items: center; justify-content: center; flex: none; gap: 8px;
-      min-height: 40px; padding: 0 20px; border: 0; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; min-height: 40px; padding: 0 20px; border: 0; border-radius: 8px;
       color: var(--paper); background: #000; font-size: 15px; font-weight: 700; white-space: nowrap;
     }
     .generate:hover:not(:disabled) { background: #303832; }
@@ -190,7 +191,7 @@
     }
     @media (max-width: 740px) {
       .workspace { grid-template-columns: minmax(0, 1fr); }
-      .topbar, .action-bar { min-height: 64px; padding: 10px 16px; }
+      .topbar { min-height: 64px; padding: 10px 16px; }
       .brand { gap: 8px; font-size: clamp(16px, 4.6vw, 21px); }
       .brand-icon { font-size: 28px; }
       .credit { font-size: 12px; }
@@ -205,9 +206,6 @@
     }
     @media (max-width: 435px) {
       #results { grid-template-columns: minmax(0, 1fr); }
-      .action-bar { flex-wrap: wrap; gap: 5px; }
-      .status { flex-basis: 100%; }
-      .status:empty { flex-basis: 0; }
     }
     @media (prefers-reduced-motion: reduce) {
       button, a.download, select { transition: none; }
@@ -262,6 +260,10 @@
               <option value="4">4 色</option>
             </select>
           </label>
+          <div class="generate-controls">
+            <button type="button" class="generate" id="generate" disabled><svg class="icon" aria-hidden="true"><use href="#i-film"/></svg><span>生成两个 GIF</span></button>
+            <p class="status" id="status" role="status"></p>
+          </div>
         </section>
       </aside>
       <div class="work-panels">
@@ -302,10 +304,6 @@
         </section>
       </div>
     </main>
-    <footer class="action-bar">
-      <p class="status" id="status" role="status"></p>
-      <button type="button" class="generate" id="generate" disabled><svg class="icon" aria-hidden="true"><use href="#i-film"/></svg><span>生成两个 GIF</span></button>
-    </footer>
   </div>
   <script>
     "use strict";
