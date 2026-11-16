@@ -7,234 +7,207 @@
   <style>
     :root {
       color-scheme: light;
-      --bg: #e9eaf0;
-      --workspace: #f7f7fa;
+      --page: #f1f3f2;
+      --surface: #fcfcfc;
       --paper: #fff;
-      --ink: #212234;
-      --label: #42455a;
-      --muted: #62667a;
-      --line: #e2e3eb;
-      --control-line: #d7d9e4;
-      --soft: #f3f4f8;
-      --accent: #643bd2;
-      --accent-hover: #5129be;
-      --accent-bg: #f2edff;
-      --accent-line: #d9cdfb;
-      --shadow: 0 1px 2px #25223e0b;
-      font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei UI", sans-serif;
+      --ink: #161b18;
+      --muted: #606964;
+      --line: #e1e5e2;
+      --field-line: #dce1de;
+      --soft: #f2f4f3;
+      --screen: #18201e;
+      --success: #2e5845;
+      --danger: #9e2b40;
+      --radius: 16px;
+      font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei UI", sans-serif;
     }
 
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
-    body { margin: 0; background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.5; }
+    body { margin: 0; background: var(--page); color: var(--ink); font-size: 14px; line-height: 1.5; }
     h1, h2, h3, p { margin: 0; }
     button, input, select { font: inherit; }
     button, a { -webkit-tap-highlight-color: transparent; }
     button { cursor: pointer; }
     button:disabled { cursor: default; }
     button, a.download, select { transition: background-color .14s ease, border-color .14s ease, color .14s ease; }
-    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-    svg.icon { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-
-    /* Window chrome */
-    .shell {
-      width: min(1376px, calc(100% - 56px)); margin: 28px auto;
-      border: 1px solid #dfe0e8; border-radius: 17px; background: var(--workspace);
-      box-shadow: 0 10px 36px #29233e0a, 0 2px 6px #29233e06;
-    }
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-      min-height: 62px; padding: 10px 24px; border-bottom: 1px solid var(--line);
-      border-radius: 16px 16px 0 0; background: var(--paper);
-    }
-    .brand { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 15px; font-weight: 690; }
-    .brand-icon { flex: none; font: 24px/1 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
-    .credit { color: var(--muted); font-size: 12px; white-space: nowrap; }
-    main { padding: 20px 24px 15px; }
-
-    /* Workspace */
-    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(298px, 31%); gap: 14px; align-items: stretch; }
-    .panel { min-width: 0; }
-    .editor {
-      display: grid; grid-template-columns: clamp(210px, 18vw, 244px) minmax(0, 1fr); grid-template-rows: auto 1fr;
-      border: 1px solid var(--line); border-radius: 12px; background: var(--paper); box-shadow: var(--shadow);
-    }
-    .editor-setup { grid-column: 1; grid-row: 1; min-width: 0; padding: 15px 14px; }
-    .editor-options { grid-column: 1; grid-row: 2; min-width: 0; display: flex; flex-direction: column; padding: 14px; border-top: 1px solid var(--line); }
-    .editor-preview { grid-column: 2; grid-row: 1 / span 2; min-width: 0; display: flex; flex-direction: column; border-left: 1px solid var(--line); }
-    .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; }
-    .panel h2 { display: flex; gap: 8px; align-items: center; font-size: 14px; line-height: 1.32; font-weight: 680; }
-    .step {
-      display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: 7px;
-      color: var(--accent); background: var(--accent-bg); border: 1px solid var(--accent-line);
-      font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
-    }
-    .size-note {
-      display: inline-flex; align-items: center; flex: none; padding: 3px 7px; border: 1px solid var(--line);
-      border-radius: 5px; color: var(--muted); background: var(--paper); font-size: 11px;
-      font-variant-numeric: tabular-nums; white-space: nowrap;
+    :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+    svg.icon {
+      width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor;
+      stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
     }
 
-    /* Settings and inputs */
-    .setup { display: grid; gap: 10px; }
-    .dimensions, .placement-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 8px; }
+    .shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+    .topbar, .action-bar {
+      display: flex; align-items: center; gap: 16px; padding: 16px 40px; background: var(--surface);
+    }
+    .topbar { min-height: 80px; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 14px; min-width: 0; font-size: 24px; line-height: 1.25; font-weight: 700; color: #000; }
+    .brand-icon { flex: none; font: 36px/1 "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+    .credit { color: var(--muted); font-size: 14px; white-space: nowrap; }
+    .workspace { display: grid; grid-template-columns: clamp(252px, 28vw, 318px) minmax(0, 1fr); min-width: 0; }
+
+    .settings { min-width: 0; background: var(--surface); border-right: 1px solid var(--line); }
+    .settings-section { padding: 24px; }
+    .settings-section + .settings-section { border-top: 1px solid var(--line); }
+    .section-title { display: flex; align-items: center; gap: 8px; font-size: 20px; line-height: 1.3; font-weight: 650; }
+    .section-title::before { content: ""; flex: none; width: 4px; height: 16px; background: #000; }
+    .settings-section > .section-title { margin-bottom: 18px; }
+    .dimensions, .placement-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 12px 8px; }
     .placement-fields .field:first-child { grid-column: 1 / -1; }
-    .field { min-width: 0; display: grid; gap: 5px; font-size: 12px; font-weight: 550; color: var(--label); }
+    .field { min-width: 0; display: grid; gap: 5px; color: var(--muted); }
     .unit {
-      display: flex; align-items: center; min-width: 0; min-height: 37px; border: 1px solid var(--control-line);
-      border-radius: 7px; background: var(--paper); box-shadow: var(--shadow);
+      display: flex; align-items: center; min-width: 0; min-height: 40px;
+      border: 1px solid var(--field-line); border-radius: 8px; background: var(--paper);
     }
-    .unit:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-bg); }
-    .unit:has(input:disabled) { border-color: var(--line); background: var(--soft); box-shadow: none; }
+    .unit:focus-within { border-color: var(--ink); outline: 1px solid var(--ink); }
+    .unit:has(input:disabled) { background: var(--soft); }
     .unit input {
-      min-width: 0; width: 100%; min-height: 35px; padding: 5px 2px 5px 8px; border: 0; border-radius: 7px;
-      outline: 0; color: var(--ink); background: transparent; font-size: 13px; font-weight: 560; font-variant-numeric: tabular-nums;
+      appearance: textfield; flex: 1; min-width: 0; width: 100%; min-height: 38px;
+      padding: 0 4px 0 12px; border: 0; border-radius: 8px; outline: 0;
+      color: var(--ink); background: transparent; font-size: 18px; font-variant-numeric: tabular-nums;
     }
+    .unit input::-webkit-inner-spin-button, .unit input::-webkit-outer-spin-button { appearance: none; margin: 0; }
     .unit input:disabled { color: var(--muted); }
-    .unit span { padding-right: 8px; color: var(--muted); font-size: 11px; font-weight: 500; }
+    .unit span { padding-right: 12px; color: var(--muted); font-size: 13px; }
+
     .dropzone {
-      width: 100%; min-width: 0; min-height: 60px; display: flex; align-items: center; gap: 9px; padding: 8px;
-      border: 1px dashed #c2afef; border-radius: 8px; background: #faf7ff; color: var(--accent); text-align: left;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; width: 100%; min-width: 0; min-height: 132px; margin-top: 16px; padding: 16px 12px;
+      border: 1px dashed var(--ink); border-radius: 8px; background: var(--soft); color: var(--ink);
+      text-align: center;
     }
     .dropzone > * { pointer-events: none; }
-    .dropzone:hover:not(:disabled), .dropzone.over { border-color: var(--accent); background: var(--accent-bg); }
-    .drop-icon { display: grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--accent-line); background: var(--paper); }
-    .drop-copy { min-width: 0; }
-    .dropzone strong { display: block; font-size: 12px; font-weight: 680; }
-    .dropzone small { display: block; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 11px; }
-    .utility {
-      display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 4px 9px;
-      border: 1px solid var(--control-line); border-radius: 7px; color: var(--label); background: var(--paper);
-      box-shadow: var(--shadow); font-size: 12px; white-space: nowrap;
+    .dropzone:hover:not(:disabled), .dropzone.over { background: #e8eeea; }
+    .dropzone:disabled { opacity: .7; }
+    .drop-icon { display: grid; place-items: center; width: 42px; height: 42px; flex: none; border-radius: 8px; color: #4d5650; background: #e4e8e5; }
+    .drop-icon .icon { width: 22px; height: 22px; }
+    .drop-copy { width: 100%; min-width: 0; }
+    .dropzone strong { display: block; font-size: 15px; font-weight: 550; }
+    .dropzone small { display: block; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 12px; }
+    .utility, .download, .replay {
+      display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 32px;
+      padding: 4px 10px; border: 1px solid var(--field-line); border-radius: 8px;
+      color: var(--ink); background: var(--paper); text-decoration: none; font-size: 13px; white-space: nowrap;
     }
-    .utility:hover:not(:disabled) { border-color: var(--accent-line); background: var(--accent-bg); color: var(--accent); }
-    .utility:disabled { border-color: var(--line); color: var(--muted); background: var(--soft); box-shadow: none; }
-    .remove-logo { margin-top: 8px; min-height: 29px; }
-    .helper { margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.55; }
-    .export-settings {
-      display: grid; gap: 5px; border-top: 1px solid var(--line);
-      padding-top: 12px; margin-top: 12px; font-size: 12px; color: var(--label);
-    }
+    .utility:hover:not(:disabled), .replay:hover, .download:not([aria-disabled]):hover { background: #e8eeea; border-color: #ccd5cf; }
+    .utility:disabled, .download[aria-disabled] { background: var(--soft); color: var(--muted); }
+    .remove-logo { margin-top: 9px; }
+    .helper { margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .export-settings { display: grid; gap: 5px; margin-top: 16px; color: var(--muted); }
+    .export-settings strong { font-weight: 500; }
     .export-settings select {
-      appearance: none; width: 100%; min-height: 37px; padding: 4px 44px 4px 8px;
-      border: 1px solid var(--control-line); border-radius: 7px; color: var(--ink); box-shadow: var(--shadow);
+      appearance: none; width: 100%; min-height: 40px; padding: 4px 30px 4px 12px;
+      border: 1px solid var(--field-line); border-radius: 8px; color: var(--ink);
       background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m1 4 5 5 5-5' fill='none' stroke='%2342455a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 8px center / 12px 12px;
       background-origin: border-box;
     }
-    .status { padding-top: 10px; margin-top: auto; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
-    .status:empty { padding-top: 0; }
-    .status[data-kind="error"] { color: #9e2b40; }
-    .status[data-kind="success"] { color: #196645; }
-    .generate {
-      display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; width: 100%; margin-top: 8px;
-      border: 1px solid transparent; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 660;
-      box-shadow: 0 2px 4px #5129be22;
-    }
-    .generate:hover:not(:disabled) { background: var(--accent-hover); }
-    .generate:disabled { border-color: var(--line); color: var(--muted); background: var(--soft); box-shadow: none; }
 
-    /* Canvas and phase toolbar */
-    .stage-head { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 13px 14px; }
-    .stage-head > div { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
-    .stage-head strong { font-size: 13px; font-weight: 680; }
-    .stage-space {
-      position: relative; display: grid; place-items: center; flex: 1; min-height: clamp(285px, 31vw, 416px);
-      margin: 0 12px; padding: 14px; border: 1px solid #e0e2eb; border-radius: 8px;
-      background-color: #f0f1f6;
-      background-image: linear-gradient(#e4e5ee 1px, transparent 1px), linear-gradient(90deg, #e4e5ee 1px, transparent 1px);
-      background-size: 16px 16px;
+    .work-panels { display: grid; align-content: start; gap: 9px; min-width: 0; padding: 16px 24px 20px 18px; }
+    .panel { min-width: 0; padding: 22px 30px; border: 1px solid var(--paper); border-radius: var(--radius); background: var(--surface); }
+    .panel-head, .stage-heading, .stage-controls, .phase-row { display: flex; align-items: center; gap: 8px; }
+    .panel-head { flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+    .stage-heading, .stage-controls { flex-wrap: wrap; }
+    .size-note { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .phase-row { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .phase-group { display: flex; gap: 2px; align-items: center; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); }
+    .phase {
+      min-height: 27px; min-width: 41px; padding: 3px 6px; border: 1px solid transparent; border-radius: 6px;
+      color: var(--muted); background: transparent; font-size: 12px; white-space: nowrap;
     }
+    .phase:hover:not(:disabled) { color: var(--ink); background: #e8eeea; }
+    .phase[aria-pressed="true"] { border-color: var(--field-line); color: var(--ink); background: var(--paper); font-weight: 650; }
+    .canvas-bed {
+      padding: clamp(8px, 1.7vw, 20px) clamp(4px, 4vw, 42px); border-radius: 8px;
+      background: radial-gradient(circle, #dce3df 1px, transparent 1.5px) 0 0 / 12px 12px #f0f2f1;
+    }
+    .stage-space { position: relative; display: grid; place-items: center; height: clamp(228px, 24vw, 312px); padding: 14px; }
     .screen {
       position: relative; width: min(100%, 320px); aspect-ratio: 4 / 3;
-      box-shadow: 0 0 0 1px #bfc2d0, 0 4px 14px #25243e14; background: var(--paper);
+      background: var(--screen); box-shadow: 0 7px 24px #18201e20, 0 0 0 1px #18201e18;
     }
     #stage { display: block; width: 100%; height: 100%; }
+    .screen:has(+ .stage-empty:not([hidden])) #stage { visibility: hidden; }
     .stage-empty {
-      display: flex; flex-direction: column; align-items: center; gap: 8px; position: absolute; top: 50%; left: 50%;
-      transform: translate(-50%, -50%); max-width: calc(100% - 26px); padding: 8px 11px; border-radius: 7px;
-      background: var(--paper); color: var(--muted); text-align: center; font-size: 12px; pointer-events: none;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      max-width: calc(100% - 20px); padding: 7px 9px; border-radius: 6px;
+      color: var(--muted); background: var(--paper); font-size: 16px; text-align: center; pointer-events: none;
     }
-    .stage-empty .icon { width: 38px; height: 38px; padding: 8px; border: 1px solid var(--line); border-radius: 9px; color: var(--accent); background: var(--accent-bg); }
-    .selection { position: absolute; box-shadow: inset 0 0 0 1.5px var(--accent), 0 0 0 1px var(--paper); cursor: move; touch-action: none; }
+    .screen:not([hidden]) + .stage-empty { color: #e0e7e3; background: var(--screen); }
+    .stage-empty .icon { width: 28px; height: 28px; }
+    .selection { position: absolute; box-shadow: inset 0 0 0 1.5px var(--ink), 0 0 0 1px var(--paper); cursor: move; touch-action: none; }
     .selection[aria-disabled="true"] { cursor: default; pointer-events: none; }
     .resize {
       position: absolute; right: 0; bottom: 0; width: 13px; height: 13px; transform: translate(45%, 45%);
-      border: 1.5px solid var(--accent); border-radius: 3px; background: var(--paper); cursor: nwse-resize; touch-action: none;
+      border: 1.5px solid var(--ink); border-radius: 3px; background: var(--paper); cursor: nwse-resize; touch-action: none;
     }
     .resize::after { content: ""; position: absolute; inset: -6px; }
-    .phase-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; color: var(--muted); font-size: 12px; }
-    .phase-group { display: flex; gap: 2px; align-items: center; border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 2px; }
-    .phase {
-      min-height: 30px; min-width: 45px; border: 1px solid transparent; border-radius: 6px; background: transparent;
-      color: var(--muted); padding: 4px 8px; font-size: 12px; white-space: nowrap;
-    }
-    .phase:hover:not(:disabled) { color: var(--accent); }
-    .phase[aria-pressed="true"] { border-color: var(--control-line); background: var(--paper); color: var(--accent); box-shadow: var(--shadow); font-weight: 700; }
-    .phase:disabled { color: var(--muted); }
 
-    /* Export cards */
-    .output .panel-head { margin-bottom: 9px; }
-    #results { display: grid; gap: 10px; }
-    .result { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); box-shadow: var(--shadow); }
-    .result-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .result-title h3 { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 680; }
-    .result-title h3::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--accent); }
-    .result:nth-child(2) .result-title h3::before { background: #5962be; }
-    .timing {
-      padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px;
-      background: var(--soft); color: var(--label); font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums;
-    }
+    #results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .result { min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+    .result-title { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; }
+    .result-title h3 { font-size: 15px; font-weight: 650; }
+    .timing { color: var(--muted); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
     .timeline { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 0; margin: 10px 0; list-style: none; }
     .timeline li {
-      --segment: #d2d4e1; --segment-bg: #f5f5f9;
-      display: flex; flex-wrap: wrap; gap: 1px 4px; align-items: center; justify-content: space-between;
-      padding: 4px 6px; border-radius: 5px; border-top: 2px solid var(--segment); background: var(--segment-bg);
-      color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1px 4px;
+      padding: 4px 6px; border-radius: 5px; color: var(--muted); background: var(--soft);
+      font-size: 11px; font-variant-numeric: tabular-nums;
     }
-    .timeline li:nth-child(2) { --segment: #aa90e8; --segment-bg: #f4effe; }
-    .result:first-child .timeline li:nth-child(3), .result:nth-child(2) .timeline li:first-child { --segment: var(--accent); --segment-bg: #eee7fd; }
-    .timeline b { font-weight: 680; color: var(--label); }
+    .timeline li:nth-child(2) { background: #e9eeeb; }
+    .result:first-child .timeline li:nth-child(3), .result:nth-child(2) .timeline li:first-child { background: #dfe7e3; }
+    .timeline b { color: var(--ink); font-weight: 650; }
     .timeline span { white-space: nowrap; }
     .preview {
-      position: relative; display: grid; place-items: center; height: clamp(106px, 9.5vw, 137px); overflow: hidden;
+      position: relative; display: grid; place-items: center; height: 116px; overflow: hidden;
       border: 1px solid var(--line); border-radius: 7px; background: var(--soft); color: var(--muted);
     }
     .preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
     .preview-empty { display: flex; align-items: center; gap: 7px; font-size: 12px; }
-    .preview-empty .icon { width: 29px; height: 29px; padding: 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); }
-    .result-foot { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-top: 9px; }
+    .preview-empty .icon { width: 24px; height: 24px; padding: 3px; }
+    .result-foot { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 7px; margin-top: 9px; }
     .result-meta { color: var(--muted); font-size: 12px; line-height: 1.3; font-variant-numeric: tabular-nums; }
     .result-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
-    .download, .replay {
-      display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 32px;
-      border: 1px solid var(--control-line); border-radius: 7px; padding: 4px 7px; color: var(--label);
-      background: var(--paper); text-decoration: none; font-size: 12px; white-space: nowrap;
-    }
-    .download:not([aria-disabled]) { border-color: var(--accent-line); color: var(--accent); background: #f9f6ff; font-weight: 650; }
-    .download:not([aria-disabled]):hover, .replay:hover { border-color: var(--accent-line); background: var(--accent-bg); color: var(--accent); }
-    .download[aria-disabled] { border-color: var(--line); background: var(--soft); color: var(--muted); }
     .download .icon, .replay .icon { width: 14px; height: 14px; }
 
-    @media (max-width: 1030px) {
-      .shell { width: calc(100% - 32px); margin: 16px auto; }
-      main { padding-inline: 18px; }
-      .topbar { padding-inline: 18px; }
-      .workspace { grid-template-columns: minmax(0, 1fr); }
-      #results { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .preview { height: 128px; }
+    .action-bar { position: sticky; bottom: 0; z-index: 5; justify-content: flex-end; min-height: 72px; border-top: 1px solid var(--line); }
+    .status { min-width: 0; color: var(--muted); font-size: 13px; text-align: right; overflow-wrap: anywhere; }
+    .status[data-kind="error"] { color: var(--danger); }
+    .status[data-kind="success"] { color: var(--success); }
+    .generate {
+      display: inline-flex; align-items: center; justify-content: center; flex: none; gap: 8px;
+      min-height: 40px; padding: 0 20px; border: 0; border-radius: 8px;
+      color: var(--paper); background: #000; font-size: 15px; font-weight: 700; white-space: nowrap;
     }
-    @media (max-width: 640px) {
-      .shell { width: 100%; margin: 0; border: 0; border-radius: 0; min-height: 100vh; box-shadow: none; }
-      .topbar { min-height: 55px; padding-inline: 14px; border-radius: 0; }
-      main { padding: 16px 12px; }
-      .editor { display: flex; flex-direction: column; }
-      .editor-preview { border-left: 0; border-top: 1px solid var(--line); }
-      .editor-setup, .editor-options { padding: 12px; }
-      .stage-head, .phase-row { padding-inline: 12px; }
-      .stage-space { flex: none; height: clamp(206px, 58vw, 320px); min-height: 0; }
-      .placement-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .placement-fields .field:first-child { grid-column: auto; }
+    .generate:hover:not(:disabled) { background: #303832; }
+    .generate:disabled { color: #5d6560; background: #e7eae8; }
+
+    @media (max-width: 925px) {
+      .settings-section { padding: 20px 18px; }
+      .panel { padding: 20px; }
+      .work-panels { padding-inline: 14px; }
+    }
+    @media (max-width: 740px) {
+      .workspace { grid-template-columns: minmax(0, 1fr); }
+      .topbar, .action-bar { min-height: 64px; padding: 10px 16px; }
+      .brand { gap: 8px; font-size: clamp(16px, 4.6vw, 21px); }
+      .brand-icon { font-size: 28px; }
+      .credit { font-size: 12px; }
+      .settings { border-right: 0; border-bottom: 1px solid var(--line); }
+      .settings-section { padding: 16px; }
+      .settings-section > .section-title { margin-bottom: 12px; }
+      .dropzone { min-height: 90px; flex-direction: row; text-align: left; }
+      .section-title { font-size: 18px; }
+      .panel { padding: 15px; }
+      .work-panels { padding: 12px 10px 14px; }
+      .stage-space { height: clamp(200px, 53vw, 270px); }
+    }
+    @media (max-width: 435px) {
       #results { grid-template-columns: minmax(0, 1fr); }
+      .action-bar { flex-wrap: wrap; gap: 5px; }
+      .status { flex-basis: 100%; }
+      .status:empty { flex-basis: 0; }
     }
     @media (prefers-reduced-motion: reduce) {
       button, a.download, select { transition: none; }
@@ -254,31 +227,63 @@
       <h1 class="brand"><span class="brand-icon" aria-hidden="true">👋</span>窄带开关机GIF生成器</h1>
       <span class="credit">Form鲁雅雯</span>
     </header>
-    <main>
-      <div class="workspace">
-        <section class="panel editor" aria-labelledby="input-title">
-          <div class="editor-setup">
-            <div class="panel-head">
-              <h2 id="input-title"><span class="step" aria-hidden="true">01</span>设置画布与 Logo</h2>
-            </div>
-            <div class="setup">
-              <div class="dimensions">
-                <label class="field">画布宽度<span class="unit"><input id="width" type="number" min="1" max="2048" step="1" value="320" required><span>px</span></span></label>
-                <label class="field">画布高度<span class="unit"><input id="height" type="number" min="1" max="2048" step="1" value="240" required><span>px</span></span></label>
-              </div>
-              <input id="file-picker" type="file" accept=".png,.svg,.jpg,.jpeg,.webp,.bmp" hidden>
-              <button type="button" class="dropzone" id="pick">
-                <span class="drop-icon"><svg class="icon" aria-hidden="true"><use href="#i-up"/></svg></span>
-                <span class="drop-copy"><strong id="pick-label">选择或拖入 Logo</strong><small id="pick-note">推荐透明 PNG 或 SVG</small></span>
-              </button>
-            </div>
-            <button type="button" class="utility remove-logo" id="remove" hidden>移除 Logo</button>
+    <main class="workspace">
+      <aside class="settings" aria-labelledby="input-title">
+        <section class="settings-section">
+          <h2 class="section-title" id="input-title">设置画布与 Logo</h2>
+          <div class="dimensions">
+            <label class="field">画布宽度<span class="unit"><input id="width" type="number" min="1" max="2048" step="1" value="320" required><span>px</span></span></label>
+            <label class="field">画布高度<span class="unit"><input id="height" type="number" min="1" max="2048" step="1" value="240" required><span>px</span></span></label>
           </div>
-          <div class="editor-preview">
-            <div class="stage-head">
-              <div><strong>画布预览</strong><span class="size-note" id="stage-size">320 × 240 px</span></div>
+          <input id="file-picker" type="file" accept=".png,.svg,.jpg,.jpeg,.webp,.bmp" hidden>
+          <button type="button" class="dropzone" id="pick">
+            <span class="drop-icon"><svg class="icon" aria-hidden="true"><use href="#i-up"/></svg></span>
+            <span class="drop-copy"><strong id="pick-label">选择或拖入 Logo</strong><small id="pick-note">推荐透明 PNG 或 SVG</small></span>
+          </button>
+          <button type="button" class="utility remove-logo" id="remove" hidden>移除 Logo</button>
+        </section>
+        <section class="settings-section" aria-labelledby="placement-title">
+          <h2 class="section-title" id="placement-title">Logo 布局</h2>
+          <div class="placement-fields">
+            <label class="field"><span id="logo-width-label">Logo 宽度</span><span class="unit"><input id="logo-width" type="number" min="1" step="1" disabled><span>px</span></span></label>
+            <label class="field">X 坐标<span class="unit"><input id="logo-x" type="number" min="0" step="1" disabled><span>px</span></span></label>
+            <label class="field">Y 坐标<span class="unit"><input id="logo-y" type="number" min="0" step="1" disabled><span>px</span></span></label>
+          </div>
+          <p class="helper">拖动 Logo 移位，拖右下角等比缩放。X、Y 从画布左上角算起。</p>
+          <label class="export-settings" for="colors">
+            <strong>全局色表</strong>
+            <select id="colors">
+              <option value="256">256 色</option>
+              <option value="128">128 色</option>
+              <option value="64" selected>64 色</option>
+              <option value="32">32 色</option>
+              <option value="16">16 色</option>
+              <option value="8">8 色</option>
+              <option value="4">4 色</option>
+            </select>
+          </label>
+        </section>
+      </aside>
+      <div class="work-panels">
+        <section class="panel" aria-labelledby="stage-title">
+          <div class="panel-head">
+            <div class="stage-heading">
+              <h2 class="section-title" id="stage-title">画布预览</h2>
+              <span class="size-note" id="stage-size">320 × 240 px</span>
+            </div>
+            <div class="stage-controls">
+              <div class="phase-row">
+                <span>预览画面</span>
+                <div class="phase-group" role="group" aria-label="预览画面">
+                  <button class="phase" id="phase-0" type="button" aria-pressed="false" disabled>白底</button>
+                  <button class="phase" id="phase-1" type="button" aria-pressed="false" disabled>50%</button>
+                  <button class="phase" id="phase-2" type="button" aria-pressed="true" disabled>100%</button>
+                </div>
+              </div>
               <button type="button" class="utility" id="center" disabled>Logo 居中</button>
             </div>
+          </div>
+          <div class="canvas-bed">
             <div class="stage-space" id="stage-space">
               <div class="screen" id="screen">
                 <canvas id="stage" width="320" height="240" aria-label="白底 Logo 布局预览"></canvas>
@@ -286,47 +291,21 @@
               </div>
               <span class="stage-empty" id="stage-empty"><svg class="icon" aria-hidden="true"><use href="#i-photo"/></svg><span id="stage-hint">上传 Logo 后在这里调整</span></span>
             </div>
-            <div class="phase-row">
-              <span>预览画面</span>
-              <div class="phase-group" role="group" aria-label="预览画面">
-                <button class="phase" id="phase-0" type="button" aria-pressed="false" disabled>白底</button>
-                <button class="phase" id="phase-1" type="button" aria-pressed="false" disabled>50%</button>
-                <button class="phase" id="phase-2" type="button" aria-pressed="true" disabled>100%</button>
-              </div>
-            </div>
-          </div>
-          <div class="editor-options">
-            <div class="placement-fields">
-              <label class="field"><span id="logo-width-label">Logo 宽度</span><span class="unit"><input id="logo-width" type="number" min="1" step="1" disabled><span>px</span></span></label>
-              <label class="field">X 坐标<span class="unit"><input id="logo-x" type="number" min="0" step="1" disabled><span>px</span></span></label>
-              <label class="field">Y 坐标<span class="unit"><input id="logo-y" type="number" min="0" step="1" disabled><span>px</span></span></label>
-            </div>
-            <p class="helper">拖动 Logo 移位，拖右下角等比缩放。X、Y 从画布左上角算起。</p>
-            <label class="export-settings" for="colors">
-              <strong>全局色表</strong>
-              <select id="colors">
-                <option value="256">256 色</option>
-                <option value="128">128 色</option>
-                <option value="64" selected>64 色</option>
-                <option value="32">32 色</option>
-                <option value="16">16 色</option>
-                <option value="8">8 色</option>
-                <option value="4">4 色</option>
-              </select>
-            </label>
-            <p class="status" id="status" role="status"></p>
-            <button type="button" class="generate" id="generate" disabled><svg class="icon" aria-hidden="true"><use href="#i-film"/></svg><span>生成两个 GIF</span></button>
           </div>
         </section>
-        <section class="panel output" aria-labelledby="output-title">
+        <section class="panel" aria-labelledby="output-title">
           <div class="panel-head">
-            <h2 id="output-title"><span class="step" aria-hidden="true">02</span>预览与下载</h2>
+            <h2 class="section-title" id="output-title">预览与下载</h2>
             <span class="size-note" id="output-size">320 × 240 px</span>
           </div>
           <div id="results"></div>
         </section>
       </div>
     </main>
+    <footer class="action-bar">
+      <p class="status" id="status" role="status"></p>
+      <button type="button" class="generate" id="generate" disabled><svg class="icon" aria-hidden="true"><use href="#i-film"/></svg><span>生成两个 GIF</span></button>
+    </footer>
   </div>
   <script>
     "use strict";
